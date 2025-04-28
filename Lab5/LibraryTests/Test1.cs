@@ -15,7 +15,6 @@ namespace LibraryTests
     {
         private LibraryService _service;
 
-        // Testing the workflow
         [TestInitialize]
         public void Setup()
         {
