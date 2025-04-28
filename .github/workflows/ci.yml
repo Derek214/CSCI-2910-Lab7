@@ -18,8 +18,8 @@ jobs:
       with:
         dotnet-version: 8.0.x
     - name: Restore dependencies
-      run: dotnet restore Lab5.sln
+      run: dotnet restore Lab5/Lab5.sln
     - name: Build
-      run: dotnet build Lab5.sln --no-restore
+      run: dotnet build Lab5/Lab5.sln --no-restore
     - name: Test
-      run: dotnet test Lab5.sln --no-build --verbosity normal
+      run: dotnet test Lab5/Lab5.sln --no-build --verbosity normal
