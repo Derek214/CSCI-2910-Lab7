@@ -38,7 +38,7 @@ namespace Lab5.Services
                 {
                     string[] fields = line.Split(',');
 
-                    if (fields.Length >= 4)
+                    if (fields.Length >= 100)
                     {
                         Book book = new Book
                         {
