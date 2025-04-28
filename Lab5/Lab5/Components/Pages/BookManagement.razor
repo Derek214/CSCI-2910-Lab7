@@ -1,0 +1,93 @@
+﻿@page "/book-management"
+@using Lab5.Models
+@using Lab5.Services
+@inject ILibraryService LibraryService
+
+<h3>Book Management</h3>
+<input @bind="newBookTitle" placeholder="Book Title" />
+<input @bind="newBookAuthor" placeholder="Author" />
+<input @bind="newBookISBN" placeholder="ISBN" />
+<button @onclick="AddBook">Add Book</button>
+
+<ul>
+    @foreach (var book in books)
+    {
+        <li>
+            @if (editingBookId == book.Id)
+            {
+                <input @bind="editTitle" placeholder="New Title" />
+                <input @bind="editAuthor" placeholder="New Author" />
+                <input @bind="editISBN" placeholder="New ISBN" />
+                <button @onclick="() => SaveEdit(book.Id)">Save</button>
+                <button @onclick="CancelEdit">Cancel</button>
+            }
+            else
+            {
+                <span>@book.Title by @book.Author (ISBN: @book.ISBN)</span>
+                <button @onclick="() => StartEdit(book)">Edit</button>
+                <button @onclick="() => DeleteBook(book.Id)">Delete</button>
+
+            }
+        </li>
+    }
+</ul>
+
+@code {
+    private List<Book> books = new();
+    private string newBookTitle;
+    private string newBookAuthor;
+    private string newBookISBN;
+    private int? editingBookId;
+    private string editTitle;
+    private string editAuthor;
+    private string editISBN;
+
+    protected override async Task OnInitializedAsync()
+    {
+        books = await LibraryService.ReadBooks();
+    }
+
+    private async Task AddBook()
+    {
+        Book newBook = new Book
+            {
+                Id = books.Count + 1,
+                Title = newBookTitle,
+                Author = newBookAuthor,
+                ISBN = newBookISBN
+            };
+        await LibraryService.AddBook(newBook);
+        books = await LibraryService.ReadBooks();
+    }
+
+    private async Task DeleteBook(int bookId)
+    {
+        await LibraryService.InitializeBooksAsync();
+        await LibraryService.DeleteBook(bookId);
+        books = await LibraryService.ReadBooks();
+    }
+
+    private void StartEdit(Book book)
+    {
+        editingBookId = book.Id;
+        editTitle = book.Title;
+        editAuthor = book.Author;
+        editISBN = book.ISBN;
+    }
+
+    private async Task SaveEdit(int bookId)
+    {
+        if (editingBookId.HasValue)
+        {
+            await LibraryService.InitializeBooksAsync();
+            await LibraryService.EditBook(bookId, editTitle, editAuthor, editISBN);
+            books = await LibraryService.ReadBooks();
+            editingBookId = null;
+        }
+    }
+
+    private void CancelEdit()
+    {
+        editingBookId = null;
+    }
+}

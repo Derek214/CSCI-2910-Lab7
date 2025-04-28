@@ -1,0 +1,48 @@
+﻿@inherits LayoutComponentBase
+
+<style>
+    .button-container button {
+        padding: 10px 20px;
+        font-size: 16px;
+        border: none;
+        border-radius: 0; 
+        background-color: #808080; 
+        color: white;
+        cursor: pointer;
+        transition: background-color 0.3s;
+    }
+
+        .button-container button:hover {
+            background-color: #666666; 
+        }
+
+        .button-container button:active {
+            background-color: #333333;
+        }
+</style>
+
+<div class="page">
+    <main>
+        <header class="header px-4 mt-5">
+            <h1>Library Management System</h1>
+        </header>
+
+        <div class="button-container px-4 mt-5">
+            <button onclick="location.href='/'">Home</button>
+            <button onclick="location.href='/book-management'">Book Management</button>
+            <button onclick="location.href='/user-management'">User Management</button>
+            <button onclick="location.href='/borrow'">Borrow Books</button>
+            <button onclick="location.href='/return'">Return Books</button>
+        </div>
+
+        <article class="content px-4">
+            @Body
+        </article>
+    </main>
+</div>
+
+<div id="blazor-error-ui">
+    An unhandled error has occurred.
+    <a href="" class="reload">Reload</a>
+    <a class="dismiss">🗙</a>
+</div>

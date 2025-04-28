@@ -1,0 +1,81 @@
+﻿@page "/user-management"
+@using Lab5.Models
+@using Lab5.Services
+@inject ILibraryService LibraryService
+
+<h3>User Management</h3>
+<input @bind="newUserName" placeholder="User Name" />
+<input @bind="newEmail" placeholder="Email" />
+<button @onclick="AddUser">Add User</button>
+
+<ul>
+    @foreach (var user in users)
+    {
+        <li>
+            @if (editingUserId == user.Id)
+            {
+                <input @bind="editUserName" placeholder="New Username" />
+                <input @bind="editEmail" placeholder="New Email" />
+                <button @onclick="() => SaveEdit(user.Id)">Save</button>
+                <button @onclick="CancelEdit">Cancel</button>
+            }
+            else
+            {
+                <span>@user.Name (@user.Email)</span>
+                <button @onclick="() => StartEdit(user)">Edit</button>
+                <button @onclick="() => DeleteUser(user.Id)">Delete</button>
+            }
+        </li>
+    }
+</ul>
+
+@code {
+    private List<User> users = new();
+    private string newUserName;
+    private string newEmail;
+    private int? editingUserId;
+    private string editUserName;
+    private string editEmail;
+
+    protected override async Task OnInitializedAsync()
+    {
+        users = await LibraryService.ReadUsers();
+    }
+
+    private async Task AddUser()
+    {
+        var newUser = new User { Id = users.Count + 1, Name = newUserName, Email = newEmail };
+        await LibraryService.AddUser(newUser);
+        users = await LibraryService.ReadUsers();
+    }
+
+    private async Task DeleteUser(int userId)
+    {
+        await LibraryService.InitializeBooksAsync();
+        await LibraryService.DeleteUser(userId);
+        users = await LibraryService.ReadUsers();
+    }
+
+    private void StartEdit(User user)
+    {
+        editingUserId = user.Id;
+        editUserName = user.Name;
+        editEmail = user.Email;
+    }
+
+    private async Task SaveEdit(int userId)
+    {
+        if (editingUserId.HasValue)
+        {
+            await LibraryService.InitializeBooksAsync();
+            await LibraryService.EditUser(userId, editUserName, editEmail);
+            users = await LibraryService.ReadUsers();
+            editingUserId = null;
+        }
+    }
+
+    private void CancelEdit()
+    {
+        editingUserId = null;
+    }
+}

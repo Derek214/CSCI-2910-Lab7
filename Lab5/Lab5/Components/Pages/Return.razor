@@ -1,0 +1,98 @@
+﻿@page "/return"
+@using Lab5.Models
+@using Lab5.Services
+@using System.ComponentModel.DataAnnotations
+@inject ILibraryService LibraryService
+
+<h3>Return a Book</h3>
+
+<EditForm Model="returnModel" OnValidSubmit="ReturnBook">
+    <DataAnnotationsValidator />
+
+    <div>
+        <label>Select User:</label>
+        <InputSelect @bind-Value="returnModel.UserId">
+            <option value="">-- Select a user --</option>
+            @foreach (var user in users)
+            {
+                <option value="@user.Id">@user.Name</option>
+            }
+        </InputSelect>
+        <ValidationMessage For="@(() => returnModel.UserId)" />
+    </div>
+
+    @if (isUserConfirmed && borrowedBooks.Any())
+    {
+        <div>
+            <label>Select Book to Return:</label>
+            <InputSelect @bind-Value="returnModel.BookIndex">
+                <option value="">-- Select a book --</option>
+                @foreach (var book in borrowedBooks)
+                {
+                    <option value="@borrowedBooks.IndexOf(book)">@book.Title by @book.Author</option>
+                }
+            </InputSelect>
+            <ValidationMessage For="@(() => returnModel.BookIndex)" />
+        </div>
+    }
+
+    <button type="button" @onclick="ConfirmUser" disabled="@(returnModel.UserId == 0)">Confirm Username</button>
+
+    <button type="submit" disabled="@(returnModel.BookIndex < 0 || !isUserConfirmed)">Return</button>
+
+    <ValidationSummary />
+</EditForm>
+
+<p>@message</p>
+
+@code {
+    private List<User> users = new();
+    private List<Book> borrowedBooks = new();
+    private ReturnModel returnModel = new();
+    private string message = "";
+    private bool isUserConfirmed = false; 
+
+    protected override async Task OnInitializedAsync()
+    {
+        users = await LibraryService.ReadUsers();
+    }
+
+    private async Task ConfirmUser()
+    {
+        if (returnModel.UserId != 0)
+        {
+            borrowedBooks = LibraryService.GetBorrowedBooks(returnModel.UserId);
+            isUserConfirmed = true; // Set the flag to true once the user is confirmed
+            message = ""; // Clear any previous message
+        }
+    }
+
+    private async Task ReturnBook()
+    {
+        await LibraryService.InitializeBooksAsync();
+
+        if (returnModel.UserId != 0)
+        {
+            borrowedBooks = LibraryService.GetBorrowedBooks(returnModel.UserId);
+        }
+
+        if (borrowedBooks.Any())
+        {
+            message = await LibraryService.ReturnBook(returnModel.UserId, returnModel.BookIndex);
+            borrowedBooks = LibraryService.GetBorrowedBooks(returnModel.UserId); 
+        }
+        else
+        {
+            message = "No borrowed books found for the selected user.";
+        }
+    }
+
+    public class ReturnModel
+    {
+        [Required(ErrorMessage = "Please select a user")]
+        public int UserId { get; set; }
+
+        [Required(ErrorMessage = "Please select a book to return")]
+        public int BookIndex { get; set; }
+    }
+}

@@ -1,0 +1,69 @@
+﻿@page "/borrow"
+@using Lab5.Models
+@using Lab5.Services
+@using System.ComponentModel.DataAnnotations
+@inject ILibraryService LibraryService
+
+<h3>Borrow a Book</h3>
+
+<EditForm Model="borrowModel" OnValidSubmit="BorrowBook">
+    <DataAnnotationsValidator />
+
+    <div>
+        <label>Select Book:</label>
+        <InputSelect @bind-Value="borrowModel.BookId">
+            <option value="">-- Select a book --</option>
+            @foreach (var book in books)
+            {
+                <option value="@book.Id">@book.Title by @book.Author</option>
+            }
+        </InputSelect>
+        <ValidationMessage For="@(() => borrowModel.BookId)" />
+    </div>
+
+    <div>
+        <label>Select User:</label>
+        <InputSelect @bind-Value="borrowModel.UserId">
+            <option value="">-- Select a user --</option>
+            @foreach (var user in users)
+            {
+                <option value="@user.Id">@user.Name</option>
+            }
+        </InputSelect>
+        <ValidationMessage For="@(() => borrowModel.UserId)" />
+    </div>
+
+    <button type="submit">Borrow</button>
+    <ValidationSummary />
+</EditForm>
+
+<p>@message</p>
+
+@code {
+    private List<Book> books = new();
+    private List<User> users = new();
+    private BorrowModel borrowModel = new();
+    private string message = "";
+
+    protected override async Task OnInitializedAsync()
+    {
+        books = await LibraryService.ReadBooks();
+        users = await LibraryService.ReadUsers();
+    }
+
+    private async Task BorrowBook()
+    {
+        await LibraryService.InitializeBooksAsync();
+        message = await LibraryService.BorrowBook(borrowModel.BookId, borrowModel.UserId);
+        books = await LibraryService.ReadBooks(); 
+    }
+
+    public class BorrowModel
+    {
+        [Required(ErrorMessage = "Please select a book")]
+        public int BookId { get; set; }
+
+        [Required(ErrorMessage = "Please select a user")]
+        public int UserId { get; set; }
+    }
+}
